@@ -1,42 +1,63 @@
 import './App.css'
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import {marked} from 'marked';
 function App() {
-  const [quote, setQuote] = useState("");
-  const [author, setAuthor] = useState("");
+  const [markdownText, setMarkdownText] = useState(`# Welcome to my React Markdown Previewer!
 
-  const fetchQuote = async () => {
-    const res = await fetch("https://corsproxy.io/?https://zenquotes.io/api/random");
-    const data = await res.json();
-    setQuote(data[0].q);
-    setAuthor(data[0].a);
-  };
-  useEffect(() => {
-    fetchQuote();
-  }, []);
+## This is a sub-heading...
+
+And here's some inline code: \`<div></div>\`.
+
+\`\`\`
+// This is a multi-line code block
+function helloWorld() {
+  console.log("Hello, world!");
+}
+\`\`\`
+
+You can also make text **bold**... whoa!
+
+Or _italic_.
+
+Or... wait for it... **_both!_**
+
+And feel free to go crazy ~~crossing stuff out~~.
+
+There's also [links](https://www.freecodecamp.org), and
+> Block Quotes!
+
+- And of course there are lists.
+- Some are bulleted.
+- With different indentation levels:
+  - That look like this.
+
+1. And there are numbered lists too.
+2. With different indentation levels as well.
+3. That look like this.
+
+And let's not forget about images:
+
+![freeCodeCamp Logo](https://cdn.freecodecamp.org/testable-projects-fcc/images/fcc_secondary.svg)
+`);
+
+
+  const handleChange = (e) => {
+    setMarkdownText(e.target.value);
+  }
   return (
     <div className="All">
-      <div className="quote-box" id="quote-box">
-        <h1 className="title">Random Quote Machine</h1> 
-        {quote && (
-          <p className="quote-text" id="text">" {quote} "</p>
-          )}
-        {author && (
-          <p className="quote-author" id="author">{author}</p>
-          )}
-        <div className="buttons">
-          <button className="new-quote" id="new-quote" onClick={fetchQuote}>New Quote</button>
-          <a
-            className="tweet-quote"
-            id="tweet-quote"
-            href={`https://twitter.com/intent/tweet?text="${quote}" - ${author}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <i className="fa fa-twitter"></i> Tweet Quote
-          </a> 
-        </div>
-
+      <div className="left">
+        <textarea name="editor" id="editor" value={markdownText}
+        onChange={handleChange}
+        rows={10}
+        cols={40}></textarea>
       </div>
+      <div className="right">
+        <div id="preview" dangerouslySetInnerHTML={{ __html: marked(markdownText) }}
+          style={{ border: '1px solid #ccc', padding: '1rem', width: '40%' }} >
+          
+        </div>
+        </div>
     </div>
   )
 }

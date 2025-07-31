@@ -1,65 +1,99 @@
 import './App.css'
-import React, { useState } from 'react';
-import {marked} from 'marked';
+import React, { useState ,useEffect} from 'react';
+
+const sounds = [
+  { key: 'Q', id: 'Heater-1', url: 'https://s3.amazonaws.com/freecodecamp/drums/Heater-1.mp3' },
+  { key: 'W', id: 'Heater-2', url: 'https://s3.amazonaws.com/freecodecamp/drums/Heater-2.mp3' },
+  { key: 'E', id: 'Heater-3', url: 'https://s3.amazonaws.com/freecodecamp/drums/Heater-3.mp3' },
+  { key: 'A', id: 'Heater-4', url: 'https://s3.amazonaws.com/freecodecamp/drums/Heater-4_1.mp3' },
+  { key: 'S', id: 'Clap', url: 'https://s3.amazonaws.com/freecodecamp/drums/Heater-6.mp3' },
+  { key: 'D', id: 'Open-HH', url: 'https://s3.amazonaws.com/freecodecamp/drums/Dsc_Oh.mp3' },
+  { key: 'Z', id: "Kick-n'-Hat", url: 'https://s3.amazonaws.com/freecodecamp/drums/Kick_n_Hat.mp3' },
+  { key: 'X', id: 'Kick', url: 'https://s3.amazonaws.com/freecodecamp/drums/RP4_KICK_1.mp3' },
+  { key: 'C', id: 'Closed-HH', url: 'https://s3.amazonaws.com/freecodecamp/drums/Cev_H2.mp3' },
+];
 function App() {
-  const [markdownText, setMarkdownText] = useState(`# Welcome to my React Markdown Previewer!
+  
+  const [display, setDisplay] = useState('');
 
-## This is a sub-heading...
+  const playSound = (key) => {
+    const audio = document.getElementById(key);
+    if (audio) {
+      audio.currentTime = 0;
+      audio.play();
+      const sound = sounds.find(s => s.key === key);
+      setDisplay(sound ? sound.id : '');
+    }
+  };
 
-And here's some inline code: \`<div></div>\`.
+  const handleKeyPress = (e) => {
+    const key = e.key.toUpperCase();
+    if (sounds.some(s => s.key === key)) {
+      playSound(key);
+    }
+  };
 
-\`\`\`
-// This is a multi-line code block
-function helloWorld() {
-  console.log("Hello, world!");
-}
-\`\`\`
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyPress);
+    return () => document.removeEventListener('keydown', handleKeyPress);
+  }, []);
 
-You can also make text **bold**... whoa!
-
-Or _italic_.
-
-Or... wait for it... **_both!_**
-
-And feel free to go crazy ~~crossing stuff out~~.
-
-There's also [links](https://www.freecodecamp.org), and
-> Block Quotes!
-
-- And of course there are lists.
-- Some are bulleted.
-- With different indentation levels:
-  - That look like this.
-
-1. And there are numbered lists too.
-2. With different indentation levels as well.
-3. That look like this.
-
-And let's not forget about images:
-
-![freeCodeCamp Logo](https://cdn.freecodecamp.org/testable-projects-fcc/images/fcc_secondary.svg)
-`);
-
-
-  const handleChange = (e) => {
-    setMarkdownText(e.target.value);
-  }
   return (
-    <div className="All">
+  <div className="All">
+    <div className="drum" id="drum-machine">
       <div className="left">
-        <textarea name="editor" id="editor" value={markdownText}
-        onChange={handleChange}
-        rows={10}
-        cols={40}></textarea>
+        <div className="title">
+          <h1>Drum Machine</h1>
+          <p>Click or press a key to play a sound</p>
+        </div>
+        <div className="pad-grid">
+          <button className="drum-pad" onClick={() => playSound("Q")} id="Heater-1">
+            Q
+            <audio className="clip" id="Q" src="https://s3.amazonaws.com/freecodecamp/drums/Heater-1.mp3" />
+          </button>
+          <button className="drum-pad" onClick={() => playSound("W")} id="Heater-2">
+            W
+            <audio className="clip" id="W" src="https://s3.amazonaws.com/freecodecamp/drums/Heater-2.mp3" />
+          </button>
+          <button className="drum-pad" onClick={() => playSound("E")} id="Heater-3">
+            E
+            <audio className="clip" id="E" src="https://s3.amazonaws.com/freecodecamp/drums/Heater-3.mp3" />
+          </button>
+          <button className="drum-pad" onClick={() => playSound("A")} id="Heater-4">
+            A
+            <audio className="clip" id="A" src="https://s3.amazonaws.com/freecodecamp/drums/Heater-4_1.mp3" />
+          </button>
+          <button className="drum-pad" onClick={() => playSound("S")} id="Clap">
+            S
+            <audio className="clip" id="S" src="https://s3.amazonaws.com/freecodecamp/drums/Heater-6.mp3" />
+          </button>
+          <button className="drum-pad" onClick={() => playSound("D")} id="Open-HH">
+            D
+            <audio className="clip" id="D" src="https://s3.amazonaws.com/freecodecamp/drums/Dsc_Oh.mp3" />
+          </button>
+          <button className="drum-pad" onClick={() => playSound("Z")} id="Kick-n'-Hat">
+            Z
+            <audio className="clip" id="Z" src="https://s3.amazonaws.com/freecodecamp/drums/Kick_n_Hat.mp3" />
+          </button>
+          <button className="drum-pad" onClick={() => playSound("X")} id="Kick">
+            X
+            <audio className="clip" id="X" src="https://s3.amazonaws.com/freecodecamp/drums/RP4_KICK_1.mp3" />
+          </button>
+          <button className="drum-pad" onClick={() => playSound("C")} id="Closed-HH">
+            C
+            <audio className="clip" id="C" src="https://s3.amazonaws.com/freecodecamp/drums/Cev_H2.mp3" />
+          </button>
+        </div>
       </div>
       <div className="right">
-        <div id="preview" dangerouslySetInnerHTML={{ __html: marked(markdownText) }}
-          style={{ border: '1px solid #ccc', padding: '1rem', width: '40%' }} >
-          
+        <div className="display" id="display">
+          <h2>{display}</h2>
         </div>
-        </div>
+      </div>
     </div>
-  )
+  </div>
+);
+
 }
 
 export default App

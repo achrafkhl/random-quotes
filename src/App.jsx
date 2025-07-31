@@ -1,96 +1,147 @@
 import './App.css'
-import React, { useState ,useEffect} from 'react';
+import React, { useState} from 'react';
 
-const sounds = [
-  { key: 'Q', id: 'Heater-1', url: 'https://s3.amazonaws.com/freecodecamp/drums/Heater-1.mp3' },
-  { key: 'W', id: 'Heater-2', url: 'https://s3.amazonaws.com/freecodecamp/drums/Heater-2.mp3' },
-  { key: 'E', id: 'Heater-3', url: 'https://s3.amazonaws.com/freecodecamp/drums/Heater-3.mp3' },
-  { key: 'A', id: 'Heater-4', url: 'https://s3.amazonaws.com/freecodecamp/drums/Heater-4_1.mp3' },
-  { key: 'S', id: 'Clap', url: 'https://s3.amazonaws.com/freecodecamp/drums/Heater-6.mp3' },
-  { key: 'D', id: 'Open-HH', url: 'https://s3.amazonaws.com/freecodecamp/drums/Dsc_Oh.mp3' },
-  { key: 'Z', id: "Kick-n'-Hat", url: 'https://s3.amazonaws.com/freecodecamp/drums/Kick_n_Hat.mp3' },
-  { key: 'X', id: 'Kick', url: 'https://s3.amazonaws.com/freecodecamp/drums/RP4_KICK_1.mp3' },
-  { key: 'C', id: 'Closed-HH', url: 'https://s3.amazonaws.com/freecodecamp/drums/Cev_H2.mp3' },
-];
+
 function App() {
-  
-  const [display, setDisplay] = useState('');
+  const [input, setInput] = useState('');
+  const [result, setResult] = useState('');
+  const [history, setHistory] = useState([]);
+  const [lastPressedEquals, setLastPressedEquals] = useState(false);
 
-  const playSound = (key) => {
-    const audio = document.getElementById(key);
-    if (audio) {
-      audio.currentTime = 0;
-      audio.play();
-      const sound = sounds.find(s => s.key === key);
-      setDisplay(sound ? sound.id : '');
+  const clearInput = () => {
+    setInput('');
+    setResult(0);
+  };
+  const backInput = () => {
+    setInput(input.slice(0, -1));
+  };
+  const isOperator = (v) => ['+', '-', '*', '/'].includes(v);
+  const plus = (value) => {
+    if (lastPressedEquals) {
+      if (isOperator(value)) {
+        setInput(result + value);
+        setLastPressedEquals(false);
+        return;
+      } else {
+        setInput(value === '.' ? '0.' : value);
+        setResult('');
+        setLastPressedEquals(false);
+        return;
+      }
+    }
+
+    if (input === '') {
+      if (value === '.') {
+        setInput('0.');
+      } else if (isOperator(value)) {
+        if (value === '-') {
+          setInput('-');
+        }
+      } else {
+        setInput(value);
+      }
+      return;
+    }
+
+    const lastNumberMatch = input.match(/([\d.]+)$/);
+    const lastNumber = lastNumberMatch ? lastNumberMatch[0] : '';
+    if (value === '.') {
+      if (lastNumber.includes('.')) return;
+      setInput(input + value);
+      return;
+    }
+
+    if (/([\D]|^)(0{2,}\d*)$/.test(input + value)) {
+      return;
+    }
+    if (lastNumber === '0' && /[0-9]/.test(value) && value !== '.') {
+      setInput(input.slice(0, -1) + value);
+      return;
+    }
+
+    if (isOperator(value)) {
+      if (isOperator(input.slice(-1))) {
+        let newInput = input;
+        while (isOperator(newInput.slice(-1))) {
+          newInput = newInput.slice(0, -1);
+        }
+        if (value === '-' && isOperator(input.slice(-1)) && input.slice(-1) !== '-') {
+          setInput(input + value);
+        } else {
+          setInput(newInput + value);
+        }
+      } else {
+        setInput(input + value);
+      }
+      return;
+    }
+
+    setInput(input + value);
+  };
+  const calculate = () => {
+    try {
+      let exp = input;
+      while (exp && isOperator(exp.slice(-1)) && !(exp.slice(-1) === '-' && isOperator(exp.slice(-2, -1)))) {
+        exp = exp.slice(0, -1);
+      }
+      if (!exp) return;
+      const evalResult = eval(exp);
+      setResult(evalResult);
+      setHistory([...history, { expression: exp, result: evalResult }]);
+      setInput('');
+      setLastPressedEquals(true);
+    } catch {
+      setResult('Error');
     }
   };
-
-  const handleKeyPress = (e) => {
-    const key = e.key.toUpperCase();
-    if (sounds.some(s => s.key === key)) {
-      playSound(key);
-    }
-  };
-
-  useEffect(() => {
-    document.addEventListener('keydown', handleKeyPress);
-    return () => document.removeEventListener('keydown', handleKeyPress);
-  }, []);
+    
 
   return (
   <div className="All">
-    <div className="drum" id="drum-machine">
-      <div className="left">
-        <div className="title">
-          <h1>Drum Machine</h1>
-          <p>Click or press a key to play a sound</p>
+    <div className="container">
+        <div className="display">
+            <div className="input">
+                <span className="input-text" id='display'>{input === '' ? result : input}</span>
+            </div>
+            <div className="result">
+                <span className="result-text">{result}</span> 
+            </div>
         </div>
-        <div className="pad-grid">
-          <button className="drum-pad" onClick={() => playSound("Q")} id="Heater-1">
-            Q
-            <audio className="clip" id="Q" src="https://s3.amazonaws.com/freecodecamp/drums/Heater-1.mp3" />
-          </button>
-          <button className="drum-pad" onClick={() => playSound("W")} id="Heater-2">
-            W
-            <audio className="clip" id="W" src="https://s3.amazonaws.com/freecodecamp/drums/Heater-2.mp3" />
-          </button>
-          <button className="drum-pad" onClick={() => playSound("E")} id="Heater-3">
-            E
-            <audio className="clip" id="E" src="https://s3.amazonaws.com/freecodecamp/drums/Heater-3.mp3" />
-          </button>
-          <button className="drum-pad" onClick={() => playSound("A")} id="Heater-4">
-            A
-            <audio className="clip" id="A" src="https://s3.amazonaws.com/freecodecamp/drums/Heater-4_1.mp3" />
-          </button>
-          <button className="drum-pad" onClick={() => playSound("S")} id="Clap">
-            S
-            <audio className="clip" id="S" src="https://s3.amazonaws.com/freecodecamp/drums/Heater-6.mp3" />
-          </button>
-          <button className="drum-pad" onClick={() => playSound("D")} id="Open-HH">
-            D
-            <audio className="clip" id="D" src="https://s3.amazonaws.com/freecodecamp/drums/Dsc_Oh.mp3" />
-          </button>
-          <button className="drum-pad" onClick={() => playSound("Z")} id="Kick-n'-Hat">
-            Z
-            <audio className="clip" id="Z" src="https://s3.amazonaws.com/freecodecamp/drums/Kick_n_Hat.mp3" />
-          </button>
-          <button className="drum-pad" onClick={() => playSound("X")} id="Kick">
-            X
-            <audio className="clip" id="X" src="https://s3.amazonaws.com/freecodecamp/drums/RP4_KICK_1.mp3" />
-          </button>
-          <button className="drum-pad" onClick={() => playSound("C")} id="Closed-HH">
-            C
-            <audio className="clip" id="C" src="https://s3.amazonaws.com/freecodecamp/drums/Cev_H2.mp3" />
-          </button>
+        <div className="history">
+            <h2>History</h2>
+            <ul>
+                {history.map((item, index) => (
+                    <li key={index}>
+                        <span className="expression">{item.expression}</span> = 
+                        <span className="result">{item.result}</span>
+                    </li>
+                ))}
+            </ul>
         </div>
-      </div>
-      <div className="right">
-        <div className="display" id="display">
-          <h2>{display}</h2>
+            <div className="all">
+                <button onClick={clearInput} id='clear'>AC</button>
+                <button onClick={backInput} id='back'>C</button>
+                <button onClick={() => plus('/')} className="operator" id='divide'>/</button>
+                <button onClick={() => plus('*')} className="operator" id='multiply'>*</button>
+                <button onClick={() => plus('7')} className="number" id='seven'>7</button>
+                <button onClick={() => plus('8')} className="number" id='eight'>8</button>
+                <button onClick={() => plus('9')} className="number" id='nine'>9</button>
+                <button onClick={() => plus('-')} className="operator" id='subtract'>-</button>
+                <button onClick={() => plus('4')} className="number" id='four'>4</button>
+                <button onClick={() => plus('5')} className="number" id='five'>5</button>
+                <button onClick={() => plus('6')} className="number" id='six'>6</button>
+                <button onClick={() => plus('+')} className="operator" id='add'>+</button>
+                <button onClick={() => plus('1')} className="number" id='one'>1</button>
+                <button onClick={() => plus('2')} className="number" id='two'>2</button>
+                <button onClick={() => plus('3')} className="number" id='three'>3</button>
+                <button onClick={calculate} className="operator" id='equals'>=</button>
+                <button onClick={() => plus('0')} className="number" id='zero'>0</button>
+                <button onClick={() => plus('.')} className="number" id='decimal'>.</button>
+                
+                
+
+            </div>
         </div>
-      </div>
-    </div>
   </div>
 );
 

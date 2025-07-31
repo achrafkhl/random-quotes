@@ -18,7 +18,7 @@ function App() {
       <div className="quote-box" id="quote-box">
         <h1 className="title">Random Quote Machine</h1> 
         {quote && (
-          <p className="quote-text" id="text">{quote}</p>
+          <p className="quote-text" id="text">" {quote} "</p>
           )}
         {author && (
           <p className="quote-author" id="author">{author}</p>
